@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Reminder!</title>
+    <style>
+        body {
+            font-family:
+                Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .container {
+            -webkit-app-region: drag;
+        }
+
+        h1 {
+            color: #22d3ee;
+            margin-top: 0;
+            font-size: 2em;
+            font-weight: 800;
+        }
+
+        p {
+            font-size: 1.2em;
+            word-wrap: break-word;
+            opacity: 0.9;
+        }
+
+        button {
+            -webkit-app-region: no-drag;
+            background-color: #22d3ee;
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #67e8f9;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Reminder!</h1>
+        <p id="reminder-name">Loading...</p>
+        <button id="dismiss-button">Dismiss</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search)
+        const reminderName = decodeURIComponent(urlParams.get('name'))
+        document.getElementById('reminder-name').innerText = reminderName
+
+        document.getElementById('dismiss-button').addEventListener('click', () => {
+            window.notificationAPI.dismiss()
+        })
+    </script>
+</body>
+
+</html>

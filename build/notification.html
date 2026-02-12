@@ -1,0 +1,73 @@
+<!-- public/notification.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reminder!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a202c; /* Dark gray */
+            color: #e2e8f0; /* Light gray text */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            border: 2px solid #4299e1; /* Blue border */
+            border-radius: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .container {
+            -webkit-app-region: drag; /* Allows dragging the window */
+        }
+        h1 {
+            color: #4299e1; /* Blue */
+            margin-top: 0;
+            font-size: 2em;
+        }
+        p {
+            font-size: 1.2em;
+            word-wrap: break-word;
+        }
+        button {
+            -webkit-app-region: no-drag; /* Makes the button clickable */
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #2b6cb0; /* Darker blue */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reminder!</h1>
+        <p id="reminder-name">Loading...</p>
+        <button id="dismiss-button">Dismiss</button>
+    </div>
+
+    <script>
+        // This script gets the reminder name from the URL and sets up the dismiss button.
+        // It no longer uses the old 'remote' module.
+        const urlParams = new URLSearchParams(window.location.search);
+        const reminderName = decodeURIComponent(urlParams.get('name'));
+        document.getElementById('reminder-name').innerText = reminderName;
+
+        document.getElementById('dismiss-button').addEventListener('click', () => {
+            // This calls the function from our new notificationPreload.js
+            window.notificationAPI.dismiss();
+        });
+    </script>
+</body>
+</html>
