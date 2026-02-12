@@ -39,6 +39,7 @@ function createNotificationWindow(reminderName) {
         frame: false,
         resizable: false,
         alwaysOnTop: true,
+        show: false, // Don't show immediately
         icon,
         webPreferences: {
             preload: join(__dirname, '../preload/notification.js'),
@@ -46,9 +47,11 @@ function createNotificationWindow(reminderName) {
         }
     })
 
+    notificationWindow.once('ready-to-show', () => {
+        notificationWindow.show()
+    })
+
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-        // In dev, we can serve the html file from the renderer's dev server or just load it as a file
-        // Since it's a static file, loading it from the source is easier
         notificationWindow.loadFile(join(__dirname, '../../src/renderer/notification.html'), {
             query: { name: encodeURIComponent(reminderName) }
         })
