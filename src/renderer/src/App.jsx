@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PlusCircle, Search, Clock, CheckCircle2, ListFilter, Trash2 } from 'lucide-react';
 import logo from './icon.ico';
-import { getFirstWeekday, getLastWeekday, getFirstWeekendDay, getLastWeekendDay } from './utils';
+import { getFirstWeekday, getLastWeekday, getFirstWeekendDay, getLastWeekendDay, calculateNextTrigger, formatDateTime } from './utils';
 import ReminderItem from './components/ReminderItem';
 import ReminderModal from './components/ReminderModal';
 
@@ -29,58 +29,51 @@ export default function App() {
             let changed = false;
 
             reminders.forEach(reminder => {
-                const reminderTime = new Date(`${reminder.date}T${reminder.hour}:${reminder.minute}`);
                 const todayStr = now.toISOString().split('T')[0];
                 const hasFiredToday = reminder.lastFired === todayStr;
 
                 if (hasFiredToday && reminder.recurrence !== 'once') return;
                 if (reminder.lastFired === 'done') return;
 
+                const reminderTime = new Date(`${reminder.date}T${reminder.hour}:${reminder.minute}`);
+                const scheduledTimeToday = new Date(now);
+                scheduledTimeToday.setHours(parseInt(reminder.hour), parseInt(reminder.minute), 0, 0);
+
                 let shouldNotify = false;
+                let markAsDone = false;
+
                 switch (reminder.recurrence) {
                     case 'once':
-                        if (now >= reminderTime) {
+                        if (reminder.date < todayStr) {
+                            markAsDone = true;
+                        } else if (reminder.date === todayStr && now >= reminderTime) {
                             shouldNotify = true;
-                            remindersToUpdate = remindersToUpdate.map(r => r.id === reminder.id ? { ...r, lastFired: 'done' } : r);
+                            markAsDone = true;
                         }
                         break;
                     case 'daily':
-                        if (now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'weekly':
-                        if (now.getDay() === reminderTime.getDay() && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDay() === reminderTime.getDay() && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'monthly-day':
-                        if (now.getDate() === reminderTime.getDate() && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDate() === reminderTime.getDate() && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'monthly-first-workday':
-                        if (now.getDate() === getFirstWeekday(now) && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDate() === getFirstWeekday(now) && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'monthly-last-workday':
-                        if (now.getDate() === getLastWeekday(now) && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDate() === getLastWeekday(now) && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'monthly-first-weekend':
-                        if (now.getDate() === getFirstWeekendDay(now) && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDate() === getFirstWeekendDay(now) && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'monthly-last-weekend':
-                        if (now.getDate() === getLastWeekendDay(now) && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
-                            shouldNotify = true;
-                        }
+                        if (now.getDate() === getLastWeekendDay(now) && now >= scheduledTimeToday) shouldNotify = true;
                         break;
                     case 'yearly':
-                        if (now.getMonth() === reminderTime.getMonth() && now.getDate() === reminderTime.getDate() && now.getHours() === parseInt(reminder.hour) && now.getMinutes() === parseInt(reminder.minute)) {
+                        if (now.getMonth() === reminderTime.getMonth() && now.getDate() === reminderTime.getDate() && now >= scheduledTimeToday) {
                             shouldNotify = true;
                         }
                         break;
@@ -88,12 +81,20 @@ export default function App() {
                         break;
                 }
 
+                if (markAsDone) {
+                    remindersToUpdate = remindersToUpdate.map(r => r.id === reminder.id ? { ...r, lastFired: 'done' } : r);
+                    changed = true;
+                }
+
                 if (shouldNotify) {
+                    const nextTrigger = calculateNextTrigger(reminder);
+                    const formattedNextTime = nextTrigger ? formatDateTime(nextTrigger) : null;
+
                     if (window.electron && window.electron.ipcRenderer) {
-                        window.electron.ipcRenderer.send('show-notification', reminder.name);
+                        window.electron.ipcRenderer.send('show-notification', reminder.name, formattedNextTime);
                     } else {
                         new Notification('Reminder Pro', {
-                            body: reminder.name,
+                            body: `${reminder.name}${formattedNextTime ? `\nNext: ${formattedNextTime}` : ''}`,
                             icon: logo
                         });
                     }

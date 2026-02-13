@@ -32,7 +32,7 @@ function createWindow() {
     }
 }
 
-function createNotificationWindow(reminderName) {
+function createNotificationWindow(reminderName, nextTime) {
     const notificationWindow = new BrowserWindow({
         width: 450,
         height: 280,
@@ -51,13 +51,18 @@ function createNotificationWindow(reminderName) {
         notificationWindow.show()
     })
 
+    const query = { name: encodeURIComponent(reminderName) }
+    if (nextTime) {
+        query.nextTime = encodeURIComponent(nextTime)
+    }
+
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
         notificationWindow.loadFile(join(__dirname, '../../src/renderer/notification.html'), {
-            query: { name: encodeURIComponent(reminderName) }
+            query
         })
     } else {
         notificationWindow.loadFile(join(__dirname, '../renderer/notification.html'), {
-            query: { name: encodeURIComponent(reminderName) }
+            query
         })
     }
 
@@ -72,8 +77,8 @@ app.whenReady().then(() => {
     })
 
     // IPC handlers
-    ipcMain.on('show-notification', (_, reminderName) => {
-        createNotificationWindow(reminderName)
+    ipcMain.on('show-notification', (_, reminderName, nextTime) => {
+        createNotificationWindow(reminderName, nextTime)
     })
 
     ipcMain.on('dismiss-notification', (event) => {

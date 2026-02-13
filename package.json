@@ -1,6 +1,6 @@
 {
     "name": "reminder-pro",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A modern local reminder application built with Electron, Vite, and React.",
     "main": "./out/main/index.js",
     "author": "Antigravity",

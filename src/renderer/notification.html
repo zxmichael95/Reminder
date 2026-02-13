@@ -30,14 +30,23 @@
         h1 {
             color: #22d3ee;
             margin-top: 0;
-            font-size: 2em;
+            font-size: 2.2em;
             font-weight: 800;
+            margin-bottom: 10px;
         }
 
-        p {
-            font-size: 1.2em;
+        p#reminder-name {
+            font-size: 1.4em;
             word-wrap: break-word;
-            opacity: 0.9;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        p#next-trigger {
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-top: 0;
+            font-style: italic;
         }
 
         button {
@@ -45,13 +54,14 @@
             background-color: #22d3ee;
             color: #0f172a;
             border: none;
-            padding: 12px 24px;
-            font-size: 1em;
-            font-weight: 700;
-            border-radius: 8px;
+            padding: 14px 32px;
+            font-size: 1.1em;
+            font-weight: 800;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            margin-top: 20px;
+            margin-top: 25px;
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.2);
         }
 
         button:hover {
@@ -69,13 +79,19 @@
     <div class="container">
         <h1>Reminder!</h1>
         <p id="reminder-name">Loading...</p>
+        <p id="next-trigger"></p>
         <button id="dismiss-button">Dismiss</button>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search)
         const reminderName = decodeURIComponent(urlParams.get('name'))
+        const nextTime = urlParams.get('nextTime') ? decodeURIComponent(urlParams.get('nextTime')) : null
+
         document.getElementById('reminder-name').innerText = reminderName
+        if (nextTime) {
+            document.getElementById('next-trigger').innerText = `Next occurrence: ${nextTime}`
+        }
 
         document.getElementById('dismiss-button').addEventListener('click', () => {
             window.notificationAPI.dismiss()
